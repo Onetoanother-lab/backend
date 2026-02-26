@@ -1,21 +1,7 @@
-// Each page passes its field config to GenericCrudPage.
-// Fields follow the flat multilingual pattern: title_uz, title_oz, title_ru
+// Each page passes its exact field config to GenericCrudPage.
+// Fields match the backend API spec precisely.
 
 import GenericCrudPage from '../components/GenericCrudPage'
-
-// ─── Shared field builders ────────────────────────────────────────────────────
-
-const mlText = (base, label, required = false) => [
-  { key: `${base}_uz`, label: `${label} (UZ)`, required },
-  { key: `${base}_oz`, label: `${label} (OZ)` },
-  { key: `${base}_ru`, label: `${label} (RU)` },
-]
-
-const mlTextarea = (base, label, required = false) => [
-  { key: `${base}_uz`, label: `${label} (UZ)`, type: 'textarea', required },
-  { key: `${base}_oz`, label: `${label} (OZ)`, type: 'textarea' },
-  { key: `${base}_ru`, label: `${label} (RU)`, type: 'textarea' },
-]
 
 // ─── Banner ───────────────────────────────────────────────────────────────────
 export function BannerPage() {
@@ -25,11 +11,13 @@ export function BannerPage() {
       endpoint="/api/banner"
       description="Manage hero and promotional banners."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description'),
-        { key: 'file', label: 'Image', type: 'file', required: true },
-        { key: 'link', label: 'Link URL' },
-        { key: 'isActive', label: 'Active', type: 'toggle' },
+        { key: 'file',     label: 'Image',        type: 'file',     required: true },
+        { key: 'title_uz', label: 'Title (UZ)',                      required: true },
+        { key: 'title_ru', label: 'Title (RU)' },
+        { key: 'title_oz', label: 'Title (OZ)' },
+        { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
+        { key: 'desc_ru',  label: 'Description (RU)', type: 'textarea' },
+        { key: 'desc_oz',  label: 'Description (OZ)', type: 'textarea' },
       ]}
     />
   )
@@ -43,10 +31,13 @@ export function GenderPage() {
       endpoint="/api/gender"
       description="Manage gender policy content."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description', true),
-        { key: 'file', label: 'Image', type: 'file' },
-        { key: 'date', label: 'Date', type: 'date' },
+        { key: 'title_uz',       label: 'Title (UZ)' },
+        { key: 'title_oz',       label: 'Title (OZ)' },
+        { key: 'title_ru',       label: 'Title (RU)' },
+        { key: 'description_uz', label: 'Description (UZ)', type: 'textarea' },
+        { key: 'description_oz', label: 'Description (OZ)', type: 'textarea' },
+        { key: 'description_ru', label: 'Description (RU)', type: 'textarea' },
+        { key: 'file',           label: 'File', type: 'file' },
       ]}
     />
   )
@@ -57,14 +48,28 @@ export function HonoraryPage() {
   return (
     <GenericCrudPage
       title="Honorary Members"
-      endpoint="/api/honorary"
+      endpoint="/api/honorary/create"
       description="Manage honorary staff and award recipients."
       fields={[
-        ...mlText('name', 'Full Name', true),
-        ...mlText('position', 'Position'),
-        ...mlTextarea('description', 'Description'),
-        { key: 'file', label: 'Photo', type: 'file' },
-        { key: 'year', label: 'Year', type: 'number' },
+        { key: 'image',          label: 'Photo (Faxriy xodim rasmi)', type: 'file' },
+        { key: 'fullName_uz',    label: 'Full Name (UZ)',    required: true },
+        { key: 'fullName_ru',    label: 'Full Name (RU)' },
+        { key: 'fullName_oz',    label: 'Full Name (OZ)' },
+        { key: 'specialist_uz',  label: 'Specialist (UZ)',  required: true },
+        { key: 'specialist_ru',  label: 'Specialist (RU)' },
+        { key: 'specialist_oz',  label: 'Specialist (OZ)' },
+        { key: 'grade_uz',       label: 'Grade (UZ)',       required: true },
+        { key: 'grade_ru',       label: 'Grade (RU)' },
+        { key: 'grade_oz',       label: 'Grade (OZ)' },
+        { key: 'experience_uz',  label: 'Experience (UZ)',  type: 'textarea' },
+        { key: 'experience_ru',  label: 'Experience (RU)',  type: 'textarea' },
+        { key: 'experience_oz',  label: 'Experience (OZ)',  type: 'textarea' },
+        { key: 'project_uz',     label: 'Project (UZ)',     type: 'textarea' },
+        { key: 'project_ru',     label: 'Project (RU)',     type: 'textarea' },
+        { key: 'project_oz',     label: 'Project (OZ)',     type: 'textarea' },
+        { key: 'description_uz', label: 'Description (UZ)', type: 'textarea' },
+        { key: 'description_ru', label: 'Description (RU)', type: 'textarea' },
+        { key: 'description_oz', label: 'Description (OZ)', type: 'textarea' },
       ]}
     />
   )
@@ -78,11 +83,13 @@ export function IndustryNewsPage() {
       endpoint="/api/IndustryNews"
       description="News and updates from the oil & gas industry."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description', true),
-        { key: 'file', label: 'Cover Image', type: 'file' },
-        { key: 'date', label: 'Date', type: 'date' },
-        { key: 'published', label: 'Published', type: 'toggle' },
+        { key: 'title_uz', label: 'Title (UZ)' },
+        { key: 'title_ru', label: 'Title (RU)' },
+        { key: 'title_oz', label: 'Title (OZ)' },
+        { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
+        { key: 'desc_ru',  label: 'Description (RU)', type: 'textarea' },
+        { key: 'desc_oz',  label: 'Description (OZ)', type: 'textarea' },
+        { key: 'images',   label: 'Images',            type: 'multi-file' },
       ]}
     />
   )
@@ -93,15 +100,26 @@ export function LeaderPage() {
   return (
     <GenericCrudPage
       title="Leaders"
-      endpoint="/api/leader"
+      endpoint="/api/leader/create"
       description="Company leadership profiles."
       fields={[
-        ...mlText('name', 'Full Name', true),
-        ...mlText('position', 'Position', true),
-        ...mlTextarea('description', 'Biography'),
-        { key: 'file', label: 'Photo', type: 'file' },
-        { key: 'order', label: 'Display Order', type: 'number' },
-        { key: 'isActive', label: 'Active', type: 'toggle' },
+        { key: 'avatar',          label: 'Avatar', type: 'file' },
+        { key: 'fullName_uz',     label: 'Full Name (UZ)' },
+        { key: 'fullName_oz',     label: 'Full Name (OZ)' },
+        { key: 'fullName_ru',     label: 'Full Name (RU)' },
+        { key: 'grade_uz',        label: 'Grade / Title (UZ)' },
+        { key: 'grade_oz',        label: 'Grade / Title (OZ)' },
+        { key: 'grade_ru',        label: 'Grade / Title (RU)' },
+        { key: 'phone',           label: 'Phone' },
+        { key: 'email',           label: 'Email', type: 'email' },
+        { key: 'workDays_uz',     label: 'Work Days (UZ)' },
+        { key: 'workDays_oz',     label: 'Work Days (OZ)' },
+        { key: 'workDays_ru',     label: 'Work Days (RU)' },
+        { key: 'workHours_start', label: 'Work Hours Start' },
+        { key: 'workHours_end',   label: 'Work Hours End' },
+        { key: 'description_uz',  label: 'Description (UZ)', type: 'textarea' },
+        { key: 'description_oz',  label: 'Description (OZ)', type: 'textarea' },
+        { key: 'description_ru',  label: 'Description (RU)', type: 'textarea' },
       ]}
     />
   )
@@ -115,11 +133,13 @@ export function LocalNewsPage() {
       endpoint="/api/localnews"
       description="Local and regional news articles."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description', true),
-        { key: 'file', label: 'Cover Image', type: 'file' },
-        { key: 'date', label: 'Date', type: 'date' },
-        { key: 'published', label: 'Published', type: 'toggle' },
+        { key: 'title_uz', label: 'Title (UZ)' },
+        { key: 'title_ru', label: 'Title (RU)' },
+        { key: 'title_oz', label: 'Title (OZ)' },
+        { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
+        { key: 'desc_ru',  label: 'Description (RU)', type: 'textarea' },
+        { key: 'desc_oz',  label: 'Description (OZ)', type: 'textarea' },
+        { key: 'images',   label: 'Images',            type: 'multi-file' },
       ]}
     />
   )
@@ -133,11 +153,13 @@ export function NewsPage() {
       endpoint="/api/news"
       description="Main news feed — articles and announcements."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description', true),
-        { key: 'file', label: 'Cover Image', type: 'file' },
-        { key: 'date', label: 'Date', type: 'date' },
-        { key: 'published', label: 'Published', type: 'toggle' },
+        { key: 'title_uz', label: 'Title (UZ)' },
+        { key: 'title_ru', label: 'Title (RU)' },
+        { key: 'title_oz', label: 'Title (OZ)' },
+        { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
+        { key: 'desc_ru',  label: 'Description (RU)', type: 'textarea' },
+        { key: 'desc_oz',  label: 'Description (OZ)', type: 'textarea' },
+        { key: 'images',   label: 'Images',            type: 'multi-file' },
       ]}
     />
   )
@@ -148,13 +170,19 @@ export function NormativePage() {
   return (
     <GenericCrudPage
       title="Normative Documents"
-      endpoint="/api/normative/all"
+      endpoint="/api/normative/create"
       description="Legal and regulatory documents."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlText('decree', 'Decree', true),
-        ...mlTextarea('description', 'Description', true),
-        { key: 'file', label: 'Document File', type: 'file', required: true },
+        { key: 'file',           label: 'File (PDF, DOC or ZIP)',   type: 'file',     required: true },
+        { key: 'title_uz',       label: 'Title (UZ)',               required: true },
+        { key: 'title_ru',       label: 'Title (RU)' },
+        { key: 'title_oz',       label: 'Title (OZ)' },
+        { key: 'decree_uz',      label: 'Decree / Order No. (UZ)', required: true },
+        { key: 'decree_ru',      label: 'Decree / Order No. (RU)' },
+        { key: 'decree_oz',      label: 'Decree / Order No. (OZ)' },
+        { key: 'description_uz', label: 'Description (UZ)',         type: 'textarea', required: true },
+        { key: 'description_ru', label: 'Description (RU)',         type: 'textarea' },
+        { key: 'description_oz', label: 'Description (OZ)',         type: 'textarea' },
       ]}
     />
   )
@@ -168,30 +196,39 @@ export function BolimlarPage() {
       endpoint="/api/bolimlar"
       description="Company departments and divisions."
       fields={[
-        ...mlText('name', 'Department Name', true),
-        ...mlTextarea('description', 'Description'),
-        { key: 'file', label: 'Image', type: 'file' },
-        { key: 'order', label: 'Display Order', type: 'number' },
+        { key: 'title_uz',     label: 'Title (UZ)' },
+        { key: 'title_ru',     label: 'Title (RU)' },
+        { key: 'title_oz',     label: 'Title (OZ)' },
+        { key: 'employees_uz', label: 'Employees (UZ)' },
+        { key: 'employees_ru', label: 'Employees (RU)' },
+        { key: 'employees_oz', label: 'Employees (OZ)' },
+        { key: 'leader_uz',    label: 'Leader (UZ)' },
+        { key: 'leader_ru',    label: 'Leader (RU)' },
+        { key: 'leader_oz',    label: 'Leader (OZ)' },
+        { key: 'desc_uz',      label: 'Description (UZ)', type: 'textarea' },
+        { key: 'desc_ru',      label: 'Description (RU)', type: 'textarea' },
+        { key: 'desc_oz',      label: 'Description (OZ)', type: 'textarea' },
       ]}
     />
   )
 }
 
 // ─── Vacancies ────────────────────────────────────────────────────────────────
+// Uses nested object format: { title: { uz, ru, oz }, ... }
 export function VacanciesPage() {
   return (
     <GenericCrudPage
       title="Vacancies"
       endpoint="/api/vacancies"
       description="Job openings and recruitment listings."
+      nestedLang
       fields={[
-        ...mlText('title', 'Job Title', true),
-        ...mlText('position', 'Department / Position'),
-        ...mlTextarea('description', 'Description', true),
-        ...mlTextarea('requirements', 'Requirements'),
-        { key: 'salary', label: 'Salary Range' },
-        { key: 'deadline', label: 'Application Deadline', type: 'date' },
-        { key: 'isActive', label: 'Active', type: 'toggle' },
+        { key: 'title',       label: 'Title',        type: 'nested-ml' },
+        { key: 'description', label: 'Description',  type: 'nested-ml-textarea' },
+        { key: 'salary',      label: 'Salary',       type: 'nested-ml' },
+        { key: 'salaryType',  label: 'Salary Type',  type: 'nested-ml' },
+        { key: 'requirements',label: 'Requirements', type: 'nested-ml-textarea' },
+        { key: 'deadline',    label: 'Deadline',     type: 'date' },
       ]}
     />
   )
@@ -202,14 +239,19 @@ export function XotinQizlarPage() {
   return (
     <GenericCrudPage
       title="Xotin-Qizlar"
-      endpoint="/api/XotinQizlar"
+      endpoint="/api/xotinQizlar"
       description="Women's policy content and resources."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description', true),
-        { key: 'file', label: 'Image', type: 'file' },
-        { key: 'date', label: 'Date', type: 'date' },
-        { key: 'published', label: 'Published', type: 'toggle' },
+        { key: 'title_uz',       label: 'Title (UZ)',               required: true },
+        { key: 'title_oz',       label: 'Title (OZ)' },
+        { key: 'title_ru',       label: 'Title (RU)' },
+        { key: 'decree_uz',      label: 'Decree (UZ)',              required: true },
+        { key: 'decree_oz',      label: 'Decree (OZ)' },
+        { key: 'decree_ru',      label: 'Decree (RU)' },
+        { key: 'description_uz', label: 'Description (UZ)',         type: 'textarea', required: true },
+        { key: 'description_oz', label: 'Description (OZ)',         type: 'textarea' },
+        { key: 'description_ru', label: 'Description (RU)',         type: 'textarea' },
+        { key: 'file',           label: 'File',                     type: 'file',     required: true },
       ]}
     />
   )
@@ -220,14 +262,19 @@ export function YoshlarPage() {
   return (
     <GenericCrudPage
       title="Yoshlar Siyosati"
-      endpoint="/api/Yoshlar siyosati"
+      endpoint="/api/yoshlarSiyosati"
       description="Youth policy programs and initiatives."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description', true),
-        { key: 'file', label: 'Image', type: 'file' },
-        { key: 'date', label: 'Date', type: 'date' },
-        { key: 'published', label: 'Published', type: 'toggle' },
+        { key: 'file',           label: 'File (PDF, DOC, DOCX, XLSX or ZIP)', type: 'file', required: true },
+        { key: 'title_uz',       label: 'Title (UZ)',               required: true },
+        { key: 'title_ru',       label: 'Title (RU)' },
+        { key: 'title_oz',       label: 'Title (OZ)' },
+        { key: 'decree_uz',      label: 'Decree (UZ)',              required: true },
+        { key: 'decree_ru',      label: 'Decree (RU)' },
+        { key: 'decree_oz',      label: 'Decree (OZ)' },
+        { key: 'description_uz', label: 'Description (UZ)',         type: 'textarea', required: true },
+        { key: 'description_ru', label: 'Description (RU)',         type: 'textarea' },
+        { key: 'description_oz', label: 'Description (OZ)',         type: 'textarea' },
       ]}
     />
   )
@@ -241,15 +288,22 @@ export function PlansReportsPage() {
       endpoint="/api/plansReports"
       description="Annual plans, reports, and performance documents."
       fields={[
-        ...mlText('title', 'Title', true),
-        ...mlTextarea('description', 'Description'),
-        { key: 'file', label: 'Document File', type: 'file', required: true },
-        { key: 'year', label: 'Year', type: 'number' },
-        { key: 'type', label: 'Type', type: 'select', options: [
-          { value: 'plan',   label: 'Plan' },
-          { value: 'report', label: 'Report' },
-          { value: 'audit',  label: 'Audit' },
-        ]},
+        { key: 'title_uz',          label: 'Title (UZ)' },
+        { key: 'title_ru',          label: 'Title (RU)' },
+        { key: 'title_oz',          label: 'Title (OZ)' },
+        { key: 'category_uz',       label: 'Category (UZ)' },
+        { key: 'category_ru',       label: 'Category (RU)' },
+        { key: 'category_oz',       label: 'Category (OZ)' },
+        { key: 'description_uz',    label: 'Description (UZ)', type: 'textarea' },
+        { key: 'description_ru',    label: 'Description (RU)', type: 'textarea' },
+        { key: 'description_oz',    label: 'Description (OZ)', type: 'textarea' },
+        { key: 'startMonth_uz',     label: 'Start Month (UZ)' },
+        { key: 'startMonth_ru',     label: 'Start Month (RU)' },
+        { key: 'startMonth_oz',     label: 'Start Month (OZ)' },
+        { key: 'endMonth_uz',       label: 'End Month (UZ)' },
+        { key: 'endMonth_ru',       label: 'End Month (RU)' },
+        { key: 'endMonth_oz',       label: 'End Month (OZ)' },
+        { key: 'participantsCount', label: 'Participants Count', type: 'number' },
       ]}
     />
   )

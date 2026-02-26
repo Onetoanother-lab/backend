@@ -17,8 +17,6 @@ const getText = (field, lang = 'uz') => {
 
 // Determine the best display keys from a record (skip internal/meta fields)
 const SKIP_KEYS = ['_id', 'id', '__v', 'updatedAt', 'createdAt', 'password']
-const getDisplayKeys = (record) =>
-  Object.keys(record).filter((k) => !SKIP_KEYS.includes(k)).slice(0, 5)
 
 const getId = (record) => record?._id || record?.id
 
@@ -65,6 +63,34 @@ function RecordForm({ fields, values, onChange, disabled }) {
       <input type="file" name={field.key} onChange={onChange} disabled={disabled}
         className="input-field py-2 text-sm" accept="image/*,.pdf,.doc,.docx" />
     )
+    if (field.type === 'multi-file') return (
+      <input type="file" name={field.key} onChange={onChange} disabled={disabled}
+        className="input-field py-2 text-sm" accept="image/*" multiple />
+    )
+    if (field.type === 'nested-ml' || field.type === 'nested-ml-textarea') {
+      const isTA = field.type === 'nested-ml-textarea'
+      return (
+        <div className="rounded-xl border border-slate-700/50 overflow-hidden">
+          {['uz', 'ru', 'oz'].map((lang, i) => {
+            const flagMap = { uz: '🇺🇿', oz: '🇺🇿', ru: '🇷🇺' }
+            const nestedKey = `${field.key}.${lang}`
+            return (
+              <div key={lang} className={`p-3 ${i < 2 ? 'border-b border-slate-700/40' : ''}`}>
+                <label className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-500 mb-1">
+                  {flagMap[lang]} {lang.toUpperCase()}
+                </label>
+                {isTA
+                  ? <textarea rows={2} name={nestedKey} value={value?.[lang] || ''} onChange={onChange}
+                      disabled={disabled} className="input-field resize-none text-sm" />
+                  : <input type="text" name={nestedKey} value={value?.[lang] || ''} onChange={onChange}
+                      disabled={disabled} className="input-field text-sm" />
+                }
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
     if (field.type === 'select') return (
       <select name={field.key} value={value || ''} onChange={onChange} disabled={disabled} className="input-field">
         <option value="">— Select —</option>
@@ -158,17 +184,42 @@ export default function GenericCrudPage({ title, endpoint, fields, description }
 
   const handleFormChange = (e) => {
     const { name, value, type, checked, files } = e.target
-    setFormValues((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'file' ? files[0] : value,
-    }))
+
+    // Nested key e.g. "title.uz" → { title: { uz: value } }
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.')
+      setFormValues((prev) => ({
+        ...prev,
+        [parent]: { ...(prev[parent] || {}), [child]: value },
+      }))
+      return
+    }
+
+    if (type === 'file' && files.length > 1) {
+      setFormValues((prev) => ({ ...prev, [name]: Array.from(files) }))
+    } else {
+      setFormValues((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : type === 'file' ? files[0] : value,
+      }))
+    }
   }
 
   const buildPayload = () => {
-    const hasFile = fields.some(f => f.type === 'file') && Object.values(formValues).some(v => v instanceof File)
-    if (hasFile) {
+    const hasFile = Object.values(formValues).some(v => v instanceof File || Array.isArray(v))
+    // If nested objects present (vacancies pattern), always send as JSON
+    const hasNested = Object.values(formValues).some(v => v && typeof v === 'object' && !(v instanceof File) && !Array.isArray(v))
+
+    if (hasFile && !hasNested) {
       const fd = new FormData()
-      Object.entries(formValues).forEach(([k, v]) => { if (v !== undefined && v !== '') fd.append(k, v) })
+      Object.entries(formValues).forEach(([k, v]) => {
+        if (v === undefined || v === '') return
+        if (Array.isArray(v)) {
+          v.forEach(file => fd.append(k, file))
+        } else {
+          fd.append(k, v)
+        }
+      })
       return fd
     }
     return formValues
@@ -196,12 +247,15 @@ export default function GenericCrudPage({ title, endpoint, fields, description }
   const handleEditOpen = (record) => {
     const extracted = {}
     fields.forEach(({ key, type }) => {
+      if (type === 'file' || type === 'multi-file') return
       const val = record[key]
-      if (type === 'file') return // don't prefill file inputs
-      // flat string keys (_uz/_oz/_ru) — use as-is if string, extract if object
-      extracted[key] = typeof val === 'object' && val !== null && !(val instanceof File)
-        ? getText(val)
-        : val ?? ''
+      if (type === 'nested-ml' || type === 'nested-ml-textarea') {
+        extracted[key] = typeof val === 'object' && val !== null ? val : { uz: '', ru: '', oz: '' }
+      } else {
+        extracted[key] = typeof val === 'object' && val !== null && !(val instanceof File)
+          ? getText(val)
+          : val ?? ''
+      }
     })
     setFormValues(extracted)
     setEditRecord(record)
@@ -241,9 +295,18 @@ export default function GenericCrudPage({ title, endpoint, fields, description }
   }
 
   // ── Display columns ───────────────────────────────────────────────────────
-
-  const displayKeys = records.length > 0 ? getDisplayKeys(records[0]) : fields.map(f => f.key).slice(0, 5)
-  const firstRecord = records[0]
+  // Use the fields config to pick columns — take the first "title" field + up to 3 others
+  // This avoids guessing from record keys which may miss data or pick internal fields
+  const displayFields = (() => {
+    const nonFile = fields.filter(f => f.type !== 'file' && f.type !== 'multi-file')
+    // prefer a field whose key ends in _uz or is named title*/name*/fullName* as the primary
+    const primary = nonFile.find(f =>
+      f.key.match(/^(title|name|fullName)/) ||
+      f.key.endsWith('_uz')
+    ) || nonFile[0]
+    const rest = nonFile.filter(f => f !== primary).slice(0, 3)
+    return primary ? [primary, ...rest] : nonFile.slice(0, 4)
+  })()
 
   return (
     <div className="space-y-6">
@@ -276,7 +339,7 @@ export default function GenericCrudPage({ title, endpoint, fields, description }
       {/* Table */}
       <div className="glass-card overflow-hidden">
         {loading ? (
-          <div className="p-6"><TableSkeleton rows={5} cols={displayKeys.length + 1} /></div>
+          <div className="p-6"><TableSkeleton rows={5} cols={displayFields.length + 1} /></div>
         ) : records.length === 0 ? (
           <EmptyState
             title={`No ${title} records yet`}
@@ -292,9 +355,9 @@ export default function GenericCrudPage({ title, endpoint, fields, description }
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-700/40">
-                  {displayKeys.map((key) => (
-                    <th key={key} className="text-left px-5 py-3 text-xs font-mono uppercase tracking-widest text-slate-500 whitespace-nowrap">
-                      {key}
+                  {displayFields.map((f) => (
+                    <th key={f.key} className="text-left px-5 py-3 text-xs font-mono uppercase tracking-widest text-slate-500 whitespace-nowrap">
+                      {f.label}
                     </th>
                   ))}
                   <th className="px-5 py-3 text-xs font-mono uppercase tracking-widest text-slate-500 text-right">Actions</th>
@@ -303,20 +366,23 @@ export default function GenericCrudPage({ title, endpoint, fields, description }
               <tbody className="divide-y divide-slate-800/60">
                 {records.map((record, i) => (
                   <tr key={getId(record) || i} className="hover:bg-slate-800/30 transition-colors animate-fade-in" style={{ animationDelay: `${i * 0.03}s` }}>
-                    {displayKeys.map((key, j) => (
-                      <td key={key} className="px-5 py-3.5 max-w-xs">
-                        {j === 0 ? (
-                          <p className="text-sm text-slate-200 font-medium truncate">{getText(record[key])}</p>
-                        ) : typeof record[key] === 'boolean' ? (
-                          <Badge variant={record[key] ? 'success' : 'warning'}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${record[key] ? 'bg-petroleum-400' : 'bg-amber-400'}`} />
-                            {record[key] ? 'Yes' : 'No'}
-                          </Badge>
-                        ) : (
-                          <p className="text-sm text-slate-400 truncate max-w-[180px]">{getText(record[key])}</p>
-                        )}
-                      </td>
-                    ))}
+                    {displayFields.map((f, j) => {
+                      const val = record[f.key]
+                      return (
+                        <td key={f.key} className="px-5 py-3.5 max-w-xs">
+                          {j === 0 ? (
+                            <p className="text-sm text-slate-200 font-medium truncate">{getText(val)}</p>
+                          ) : typeof val === 'boolean' ? (
+                            <Badge variant={val ? 'success' : 'warning'}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${val ? 'bg-petroleum-400' : 'bg-amber-400'}`} />
+                              {val ? 'Yes' : 'No'}
+                            </Badge>
+                          ) : (
+                            <p className="text-sm text-slate-400 truncate max-w-[180px]">{getText(val)}</p>
+                          )}
+                        </td>
+                      )
+                    })}
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
