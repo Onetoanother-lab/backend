@@ -48,7 +48,8 @@ export function HonoraryPage() {
   return (
     <GenericCrudPage
       title="Honorary Members"
-      endpoint="/api/honorary/create"
+      endpoint="/api/honorary"
+      createEndpoint="/api/honorary/create"
       description="Manage honorary staff and award recipients."
       fields={[
         { key: 'image',          label: 'Photo (Faxriy xodim rasmi)', type: 'file' },
@@ -100,7 +101,8 @@ export function LeaderPage() {
   return (
     <GenericCrudPage
       title="Leaders"
-      endpoint="/api/leader/create"
+      endpoint="/api/leader"
+      createEndpoint="/api/leader/create"
       description="Company leadership profiles."
       fields={[
         { key: 'avatar',          label: 'Avatar', type: 'file' },
@@ -170,7 +172,8 @@ export function NormativePage() {
   return (
     <GenericCrudPage
       title="Normative Documents"
-      endpoint="/api/normative/create"
+      endpoint="/api/normative/all"
+      createEndpoint="/api/normative/create"
       description="Legal and regulatory documents."
       fields={[
         { key: 'file',           label: 'File (PDF, DOC or ZIP)',   type: 'file',     required: true },

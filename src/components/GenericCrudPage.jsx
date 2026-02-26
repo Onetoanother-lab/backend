@@ -153,7 +153,7 @@ function RecordForm({ fields, values, onChange, disabled }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function GenericCrudPage({ title, endpoint, fields, description }) {
+export default function GenericCrudPage({ title, endpoint, createEndpoint, fields, description }) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -230,7 +230,8 @@ export default function GenericCrudPage({ title, endpoint, fields, description }
     try {
       const payload = buildPayload()
       const isForm = payload instanceof FormData
-      const { data } = await apiClient.post(endpoint, payload, {
+      const postUrl = createEndpoint || endpoint
+      const { data } = await apiClient.post(postUrl, payload, {
         headers: isForm ? { 'Content-Type': 'multipart/form-data' } : {},
       })
       toast.success('Created successfully!')
