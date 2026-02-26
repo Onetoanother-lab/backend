@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { apiClient } from '../services/api'
 import { Spinner, EmptyState, TableSkeleton, Badge, Modal } from './UI'
+import { useLang } from '../context/LangContext'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -10,9 +11,77 @@ const getText = (field, lang = 'uz') => {
   if (typeof field === 'boolean') return field ? 'Yes' : 'No'
   if (typeof field === 'string') return field || '—'
   if (typeof field === 'number') return String(field)
-  if (typeof field === 'object')
-    return field[lang] || field.uz || field.ru || field.oz || field.en || Object.values(field).find(v => typeof v === 'string') || '—'
+  if (typeof field === 'object') {
+    const val = field[lang] || field.uz || field.ru || field.oz
+      || Object.values(field).find(v => typeof v === 'string' && v !== '')
+    return val || '—'
+  }
   return String(field)
+}
+
+// Common aliases: field config key base → possible API key bases
+const KEY_ALIASES = {
+  desc:        ['description', 'content', 'body', 'text', 'desc'],
+  description: ['description', 'desc', 'content', 'body', 'text'],
+  name:        ['name', 'fullName', 'title'],
+  fullName:    ['fullName', 'name', 'full_name'],
+  title:       ['title', 'name', 'heading'],
+  image:       ['image', 'avatar', 'photo', 'img', 'file'],
+  avatar:      ['avatar', 'image', 'photo', 'img'],
+}
+
+const LANGS = ['uz', 'ru', 'oz', 'en']
+
+const resolveValue = (record, key, lang = 'uz') => {
+  // ── 1. Direct flat key: record['title_uz'] ────────────────────────────────
+  const direct = record[key]
+  if (direct !== undefined && direct !== null && direct !== '') return direct
+
+  const lastUnderscore = key.lastIndexOf('_')
+  const hasLangSuffix = lastUnderscore > 0 && LANGS.includes(key.slice(lastUnderscore + 1))
+  const base    = hasLangSuffix ? key.slice(0, lastUnderscore) : key  // 'desc'
+  const keyLang = hasLangSuffix ? key.slice(lastUnderscore + 1) : lang // 'uz'
+
+  // Build list of base names to try (the defined one + aliases)
+  const basesToTry = [base, ...(KEY_ALIASES[base] || [])].filter((b, i, a) => a.indexOf(b) === i)
+  // Build list of langs to try (keyLang first, then active lang, then all)
+  const langsToTry = [keyLang, lang, 'uz', 'ru', 'oz'].filter((l, i, a) => a.indexOf(l) === i)
+
+  for (const b of basesToTry) {
+    // ── 2. Nested object: record['description']['uz'] ────────────────────────
+    const nested = record[b]
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+      for (const l of langsToTry) {
+        if (nested[l] !== undefined && nested[l] !== null && nested[l] !== '')
+          return nested[l]
+      }
+    }
+
+    // ── 3. Flat lang variants: record['description_uz'] ──────────────────────
+    for (const l of langsToTry) {
+      const flatKey = `${b}_${l}`
+      const flatVal = record[flatKey]
+      if (flatVal !== undefined && flatVal !== null && flatVal !== '') return flatVal
+    }
+
+    // ── 4. Plain key with no lang: record['description'] ─────────────────────
+    if (record[b] !== undefined && record[b] !== null && record[b] !== '') return record[b]
+  }
+
+  // ── 5. Last resort: scan all record keys for anything containing the base ──
+  for (const recordKey of Object.keys(record)) {
+    if (recordKey.toLowerCase().includes(base.toLowerCase())) {
+      const val = record[recordKey]
+      if (typeof val === 'string' && val !== '') return val
+      if (val && typeof val === 'object') {
+        for (const l of langsToTry) {
+          if (val[l] !== undefined && val[l] !== null && val[l] !== '') return val[l]
+        }
+      }
+    }
+  }
+
+  return undefined
 }
 
 // Determine the best display keys from a record (skip internal/meta fields)
@@ -154,6 +223,7 @@ function RecordForm({ fields, values, onChange, disabled }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function GenericCrudPage({ title, endpoint, createEndpoint, fields, description }) {
+  const { lang } = useLang()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -169,8 +239,34 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
     setLoading(true)
     try {
       const { data } = await apiClient.get(endpoint)
-      const result = data?.data ?? data?.items ?? data?.result ?? data
-      setRecords(Array.isArray(result) ? result : [])
+      console.log(`[DEBUG ${endpoint}] raw response:`, data)
+      // Try known keys first, then scan all values for the first array
+      const result =
+        data?.data ??
+        data?.items ??
+        data?.result ??
+        data?.news ??
+        data?.localNews ??
+        data?.localnews ??
+        data?.industryNews ??
+        data?.leaders ??
+        data?.honorary ??
+        data?.banners ??
+        data?.gender ??
+        data?.vacancies ??
+        data?.normative ??
+        data?.bolimlar ??
+        data?.plansReports ??
+        data?.xotinQizlar ??
+        data?.yoshlarSiyosati ??
+        // fallback: find the first array-valued key in the response object
+        (typeof data === 'object' && !Array.isArray(data)
+          ? Object.values(data).find(v => Array.isArray(v))
+          : null) ??
+        data
+      const arr = Array.isArray(result) ? result : []
+      console.log(`[DEBUG ${endpoint}] parsed ${arr.length} records. First:`, arr[0])
+      setRecords(arr)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load data')
     } finally {
@@ -249,7 +345,7 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
     const extracted = {}
     fields.forEach(({ key, type }) => {
       if (type === 'file' || type === 'multi-file') return
-      const val = record[key]
+      const val = resolveValue(record, key)
       if (type === 'nested-ml' || type === 'nested-ml-textarea') {
         extracted[key] = typeof val === 'object' && val !== null ? val : { uz: '', ru: '', oz: '' }
       } else {
@@ -295,19 +391,14 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
     }
   }
 
-  // ── Display columns ───────────────────────────────────────────────────────
-  // Use the fields config to pick columns — take the first "title" field + up to 3 others
-  // This avoids guessing from record keys which may miss data or pick internal fields
-  const displayFields = (() => {
-    const nonFile = fields.filter(f => f.type !== 'file' && f.type !== 'multi-file')
-    // prefer a field whose key ends in _uz or is named title*/name*/fullName* as the primary
-    const primary = nonFile.find(f =>
-      f.key.match(/^(title|name|fullName)/) ||
-      f.key.endsWith('_uz')
-    ) || nonFile[0]
-    const rest = nonFile.filter(f => f !== primary).slice(0, 3)
-    return primary ? [primary, ...rest] : nonFile.slice(0, 4)
-  })()
+  // Show only fields relevant to current language — hide the other two language variants
+  // e.g. if lang='ru', show title_ru, desc_ru etc, hide _uz and _oz columns
+  const displayFields = fields.filter(f => {
+    if (f.type === 'file' || f.type === 'multi-file') return false
+    const suffix = f.key.match(/_(uz|oz|ru)$/)
+    if (!suffix) return true           // non-language field, always show
+    return suffix[1] === lang          // only show current language variant
+  })
 
   return (
     <div className="space-y-6">
@@ -368,18 +459,18 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
                 {records.map((record, i) => (
                   <tr key={getId(record) || i} className="hover:bg-slate-800/30 transition-colors animate-fade-in" style={{ animationDelay: `${i * 0.03}s` }}>
                     {displayFields.map((f, j) => {
-                      const val = record[f.key]
+                      const val = resolveValue(record, f.key, lang)
                       return (
                         <td key={f.key} className="px-5 py-3.5 max-w-xs">
                           {j === 0 ? (
-                            <p className="text-sm text-slate-200 font-medium truncate">{getText(val)}</p>
+                            <p className="text-sm text-slate-200 font-medium truncate max-w-[200px]">{getText(val, lang)}</p>
                           ) : typeof val === 'boolean' ? (
                             <Badge variant={val ? 'success' : 'warning'}>
                               <span className={`w-1.5 h-1.5 rounded-full ${val ? 'bg-petroleum-400' : 'bg-amber-400'}`} />
                               {val ? 'Yes' : 'No'}
                             </Badge>
                           ) : (
-                            <p className="text-sm text-slate-400 truncate max-w-[180px]">{getText(val)}</p>
+                            <p className="text-sm text-slate-400 truncate max-w-[160px]" title={getText(val, lang)}>{getText(val, lang)}</p>
                           )}
                         </td>
                       )

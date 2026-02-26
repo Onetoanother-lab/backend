@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import { useLang } from '../context/LangContext'
 
 const BREADCRUMB_MAP = {
   '/dashboard':              'Overview',
@@ -22,10 +23,17 @@ const BREADCRUMB_MAP = {
   '/dashboard/plans-reports':'Plans & Reports',
 }
 
+const LANGS = [
+  { code: 'uz', label: "O'z", flag: '🇺🇿', full: "O'zbek" },
+  { code: 'oz', label: 'Oz',  flag: '🇺🇿', full: 'Lotin' },
+  { code: 'ru', label: 'Ру',  flag: '🇷🇺', full: 'Русский' },
+]
+
 export default function DashboardLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const location = useLocation()
   const pageTitle = BREADCRUMB_MAP[location.pathname] || 'Dashboard'
+  const { lang, setLang } = useLang()
 
   return (
     <div className="min-h-screen flex">
@@ -50,13 +58,37 @@ export default function DashboardLayout() {
             </p>
           </div>
 
-          {/* Status indicator */}
-          <div className="ml-auto flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-petroleum-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-petroleum-500"></span>
-            </span>
-            <span className="text-xs text-slate-400 font-mono">API Connected</span>
+          {/* Language switcher */}
+          <div className="ml-auto flex items-center gap-3">
+            <div className="flex items-center gap-1 bg-slate-800/60 border border-slate-700/40 rounded-xl p-1">
+              {LANGS.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  title={l.full}
+                  className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium
+                    transition-all duration-200
+                    ${lang === l.code
+                      ? 'bg-petroleum-600 text-white shadow-lg shadow-petroleum-900/40'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                    }
+                  `}
+                >
+                  <span>{l.flag}</span>
+                  <span>{l.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* API status */}
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-petroleum-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-petroleum-500"></span>
+              </span>
+              <span className="text-xs text-slate-400 font-mono hidden sm:block">API Connected</span>
+            </div>
           </div>
         </header>
 

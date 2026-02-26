@@ -27,8 +27,12 @@ export default function ManagePostsPage() {
     setLoading(true)
     try {
       const data = await newsAPI.getAll()
-      // Handle any response shape: array, { data: [] }, { items: [] }, { news: [] }, etc.
-      const result = data?.data ?? data?.items ?? data?.news ?? data?.posts ?? data
+      const result =
+        data?.data ?? data?.items ?? data?.result ?? data?.news ??
+        (typeof data === 'object' && !Array.isArray(data)
+          ? Object.values(data).find(v => Array.isArray(v))
+          : null) ??
+        data
       setPosts(Array.isArray(result) ? result : [])
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Failed to load posts'

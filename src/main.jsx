@@ -5,13 +5,16 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import { store } from './store/store.js'
+import { LangProvider } from './context/LangContext.jsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <App />
-        <Toaster
+      <LangProvider>
+        <BrowserRouter>
+          <App />
+          <Toaster
           position="top-right"
           toastOptions={{
             style: {
@@ -32,6 +35,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             },
           }}
         />
-      </BrowserRouter>
+        </BrowserRouter>
+      </LangProvider>
     </Provider>
+  </React.StrictMode>
 )
