@@ -2,7 +2,9 @@ import axios from 'axios'
 
 // ─── Base Configuration ───────────────────────────────────────────────────────
 
-const BASE_URL = 'https://uzbekneftegaz-backend.onrender.com'
+const BASE_URL = import.meta.env.DEV
+  ? 'https://uzbekneftegaz-backend.onrender.com'
+  : ''  // empty = relative URLs, proxied by vercel.json in production
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

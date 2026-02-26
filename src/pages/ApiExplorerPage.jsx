@@ -226,7 +226,8 @@ export default function ApiExplorerPage() {
     setResponse(null)
     setRespStatus(null)
 
-    const url = `https://uzbekneftegaz-backend.onrender.com${resolvedPath}`
+    const BASE = import.meta.env.DEV ? 'https://uzbekneftegaz-backend.onrender.com' : ''
+    const url = `${BASE}${resolvedPath}`
     const headers = { 'Content-Type': 'application/json' }
     if (token) headers['Authorization'] = `Bearer ${token}`
 
