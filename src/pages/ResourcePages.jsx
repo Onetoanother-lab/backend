@@ -1,7 +1,10 @@
-// Each page passes its exact field config to GenericCrudPage.
-// Fields match the backend API spec precisely.
-
 import GenericCrudPage from '../components/GenericCrudPage'
+
+// Endpoint convention observed from the API:
+//   GET    /api/resource          ← list
+//   POST   /api/resource/create   ← create
+//   PUT    /api/resource/:id      ← update (some may differ)
+//   DELETE /api/resource/delete/:id ← delete
 
 // ─── Banner ───────────────────────────────────────────────────────────────────
 export function BannerPage() {
@@ -9,10 +12,12 @@ export function BannerPage() {
     <GenericCrudPage
       title="Banners"
       endpoint="/api/banner"
+      createEndpoint="/api/banner/upload"
+      deleteEndpoint="/api/banner/delete"
       description="Manage hero and promotional banners."
       fields={[
-        { key: 'file',     label: 'Image',        type: 'file',     required: true },
-        { key: 'title_uz', label: 'Title (UZ)',                      required: true },
+        { key: 'file',     label: 'Image',            type: 'file',     required: true },
+        { key: 'title_uz', label: 'Title (UZ)',        required: true },
         { key: 'title_ru', label: 'Title (RU)' },
         { key: 'title_oz', label: 'Title (OZ)' },
         { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
@@ -29,6 +34,8 @@ export function GenderPage() {
     <GenericCrudPage
       title="Gender Policy"
       endpoint="/api/gender"
+      createEndpoint="/api/gender/create"
+      deleteEndpoint="/api/gender/delete"
       description="Manage gender policy content."
       fields={[
         { key: 'title_uz',       label: 'Title (UZ)' },
@@ -50,24 +57,25 @@ export function HonoraryPage() {
       title="Honorary Members"
       endpoint="/api/honorary"
       createEndpoint="/api/honorary/create"
+      deleteEndpoint="/api/honorary/delete"
       description="Manage honorary staff and award recipients."
       fields={[
-        { key: 'image',          label: 'Photo (Faxriy xodim rasmi)', type: 'file' },
-        { key: 'fullName_uz',    label: 'Full Name (UZ)',    required: true },
+        { key: 'image',          label: 'Photo', type: 'file' },
+        { key: 'fullName_uz',    label: 'Full Name (UZ)',   required: true },
         { key: 'fullName_ru',    label: 'Full Name (RU)' },
         { key: 'fullName_oz',    label: 'Full Name (OZ)' },
-        { key: 'specialist_uz',  label: 'Specialist (UZ)',  required: true },
+        { key: 'specialist_uz',  label: 'Specialist (UZ)', required: true },
         { key: 'specialist_ru',  label: 'Specialist (RU)' },
         { key: 'specialist_oz',  label: 'Specialist (OZ)' },
-        { key: 'grade_uz',       label: 'Grade (UZ)',       required: true },
+        { key: 'grade_uz',       label: 'Grade (UZ)',      required: true },
         { key: 'grade_ru',       label: 'Grade (RU)' },
         { key: 'grade_oz',       label: 'Grade (OZ)' },
-        { key: 'experience_uz',  label: 'Experience (UZ)',  type: 'textarea' },
-        { key: 'experience_ru',  label: 'Experience (RU)',  type: 'textarea' },
-        { key: 'experience_oz',  label: 'Experience (OZ)',  type: 'textarea' },
-        { key: 'project_uz',     label: 'Project (UZ)',     type: 'textarea' },
-        { key: 'project_ru',     label: 'Project (RU)',     type: 'textarea' },
-        { key: 'project_oz',     label: 'Project (OZ)',     type: 'textarea' },
+        { key: 'experience_uz',  label: 'Experience (UZ)', type: 'textarea' },
+        { key: 'experience_ru',  label: 'Experience (RU)', type: 'textarea' },
+        { key: 'experience_oz',  label: 'Experience (OZ)', type: 'textarea' },
+        { key: 'project_uz',     label: 'Project (UZ)',    type: 'textarea' },
+        { key: 'project_ru',     label: 'Project (RU)',    type: 'textarea' },
+        { key: 'project_oz',     label: 'Project (OZ)',    type: 'textarea' },
         { key: 'description_uz', label: 'Description (UZ)', type: 'textarea' },
         { key: 'description_ru', label: 'Description (RU)', type: 'textarea' },
         { key: 'description_oz', label: 'Description (OZ)', type: 'textarea' },
@@ -82,6 +90,8 @@ export function IndustryNewsPage() {
     <GenericCrudPage
       title="Industry News"
       endpoint="/api/IndustryNews"
+      createEndpoint="/api/IndustryNews/create"
+      deleteEndpoint="/api/IndustryNews/delete"
       description="News and updates from the oil & gas industry."
       fields={[
         { key: 'title_uz', label: 'Title (UZ)' },
@@ -90,7 +100,7 @@ export function IndustryNewsPage() {
         { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
         { key: 'desc_ru',  label: 'Description (RU)', type: 'textarea' },
         { key: 'desc_oz',  label: 'Description (OZ)', type: 'textarea' },
-        { key: 'images',   label: 'Images',            type: 'multi-file' },
+        { key: 'images',   label: 'Images', type: 'multi-file' },
       ]}
     />
   )
@@ -103,6 +113,7 @@ export function LeaderPage() {
       title="Leaders"
       endpoint="/api/leader"
       createEndpoint="/api/leader/create"
+      deleteEndpoint="/api/leader/delete"
       description="Company leadership profiles."
       fields={[
         { key: 'avatar',          label: 'Avatar', type: 'file' },
@@ -133,6 +144,8 @@ export function LocalNewsPage() {
     <GenericCrudPage
       title="Local News"
       endpoint="/api/localnews"
+      createEndpoint="/api/localnews/create"
+      deleteEndpoint="/api/localnews/delete"
       description="Local and regional news articles."
       fields={[
         { key: 'title_uz', label: 'Title (UZ)' },
@@ -141,7 +154,7 @@ export function LocalNewsPage() {
         { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
         { key: 'desc_ru',  label: 'Description (RU)', type: 'textarea' },
         { key: 'desc_oz',  label: 'Description (OZ)', type: 'textarea' },
-        { key: 'images',   label: 'Images',            type: 'multi-file' },
+        { key: 'images',   label: 'Images', type: 'multi-file' },
       ]}
     />
   )
@@ -153,6 +166,8 @@ export function NewsPage() {
     <GenericCrudPage
       title="News"
       endpoint="/api/news"
+      createEndpoint="/api/news/create"
+      deleteEndpoint="/api/news/delete"
       description="Main news feed — articles and announcements."
       fields={[
         { key: 'title_uz', label: 'Title (UZ)' },
@@ -161,7 +176,7 @@ export function NewsPage() {
         { key: 'desc_uz',  label: 'Description (UZ)', type: 'textarea' },
         { key: 'desc_ru',  label: 'Description (RU)', type: 'textarea' },
         { key: 'desc_oz',  label: 'Description (OZ)', type: 'textarea' },
-        { key: 'images',   label: 'Images',            type: 'multi-file' },
+        { key: 'images',   label: 'Images', type: 'multi-file' },
       ]}
     />
   )
@@ -174,18 +189,19 @@ export function NormativePage() {
       title="Normative Documents"
       endpoint="/api/normative/all"
       createEndpoint="/api/normative/create"
+      deleteEndpoint="/api/normative/delete"
       description="Legal and regulatory documents."
       fields={[
-        { key: 'file',           label: 'File (PDF, DOC or ZIP)',   type: 'file',     required: true },
-        { key: 'title_uz',       label: 'Title (UZ)',               required: true },
+        { key: 'file',           label: 'File (PDF, DOC or ZIP)', type: 'file', required: true },
+        { key: 'title_uz',       label: 'Title (UZ)',             required: true },
         { key: 'title_ru',       label: 'Title (RU)' },
         { key: 'title_oz',       label: 'Title (OZ)' },
-        { key: 'decree_uz',      label: 'Decree / Order No. (UZ)', required: true },
-        { key: 'decree_ru',      label: 'Decree / Order No. (RU)' },
-        { key: 'decree_oz',      label: 'Decree / Order No. (OZ)' },
-        { key: 'description_uz', label: 'Description (UZ)',         type: 'textarea', required: true },
-        { key: 'description_ru', label: 'Description (RU)',         type: 'textarea' },
-        { key: 'description_oz', label: 'Description (OZ)',         type: 'textarea' },
+        { key: 'decree_uz',      label: 'Decree No. (UZ)',        required: true },
+        { key: 'decree_ru',      label: 'Decree No. (RU)' },
+        { key: 'decree_oz',      label: 'Decree No. (OZ)' },
+        { key: 'description_uz', label: 'Description (UZ)', type: 'textarea', required: true },
+        { key: 'description_ru', label: 'Description (RU)', type: 'textarea' },
+        { key: 'description_oz', label: 'Description (OZ)', type: 'textarea' },
       ]}
     />
   )
@@ -197,6 +213,8 @@ export function BolimlarPage() {
     <GenericCrudPage
       title="Bolimlar"
       endpoint="/api/bolimlar"
+      createEndpoint="/api/bolimlar/create"
+      deleteEndpoint="/api/bolimlar/delete"
       description="Company departments and divisions."
       fields={[
         { key: 'title_uz',     label: 'Title (UZ)' },
@@ -217,21 +235,22 @@ export function BolimlarPage() {
 }
 
 // ─── Vacancies ────────────────────────────────────────────────────────────────
-// Uses nested object format: { title: { uz, ru, oz }, ... }
 export function VacanciesPage() {
   return (
     <GenericCrudPage
       title="Vacancies"
       endpoint="/api/vacancies"
+      createEndpoint="/api/vacancies/create"
+      deleteEndpoint="/api/vacancies/delete"
       description="Job openings and recruitment listings."
       nestedLang
       fields={[
-        { key: 'title',       label: 'Title',        type: 'nested-ml' },
-        { key: 'description', label: 'Description',  type: 'nested-ml-textarea' },
-        { key: 'salary',      label: 'Salary',       type: 'nested-ml' },
-        { key: 'salaryType',  label: 'Salary Type',  type: 'nested-ml' },
-        { key: 'requirements',label: 'Requirements', type: 'nested-ml-textarea' },
-        { key: 'deadline',    label: 'Deadline',     type: 'date' },
+        { key: 'title',        label: 'Title',        type: 'nested-ml' },
+        { key: 'description',  label: 'Description',  type: 'nested-ml-textarea' },
+        { key: 'salary',       label: 'Salary',       type: 'nested-ml' },
+        { key: 'salaryType',   label: 'Salary Type',  type: 'nested-ml' },
+        { key: 'requirements', label: 'Requirements', type: 'nested-ml-textarea' },
+        { key: 'deadline',     label: 'Deadline',     type: 'date' },
       ]}
     />
   )
@@ -243,18 +262,20 @@ export function XotinQizlarPage() {
     <GenericCrudPage
       title="Xotin-Qizlar"
       endpoint="/api/xotinQizlar"
+      createEndpoint="/api/xotinQizlar/create"
+      deleteEndpoint="/api/xotinQizlar/delete"
       description="Women's policy content and resources."
       fields={[
-        { key: 'title_uz',       label: 'Title (UZ)',               required: true },
+        { key: 'title_uz',       label: 'Title (UZ)',       required: true },
         { key: 'title_oz',       label: 'Title (OZ)' },
         { key: 'title_ru',       label: 'Title (RU)' },
-        { key: 'decree_uz',      label: 'Decree (UZ)',              required: true },
+        { key: 'decree_uz',      label: 'Decree (UZ)',      required: true },
         { key: 'decree_oz',      label: 'Decree (OZ)' },
         { key: 'decree_ru',      label: 'Decree (RU)' },
-        { key: 'description_uz', label: 'Description (UZ)',         type: 'textarea', required: true },
-        { key: 'description_oz', label: 'Description (OZ)',         type: 'textarea' },
-        { key: 'description_ru', label: 'Description (RU)',         type: 'textarea' },
-        { key: 'file',           label: 'File',                     type: 'file',     required: true },
+        { key: 'description_uz', label: 'Description (UZ)', type: 'textarea', required: true },
+        { key: 'description_oz', label: 'Description (OZ)', type: 'textarea' },
+        { key: 'description_ru', label: 'Description (RU)', type: 'textarea' },
+        { key: 'file',           label: 'File', type: 'file', required: true },
       ]}
     />
   )
@@ -266,18 +287,20 @@ export function YoshlarPage() {
     <GenericCrudPage
       title="Yoshlar Siyosati"
       endpoint="/api/yoshlarSiyosati"
+      createEndpoint="/api/yoshlarSiyosati/create"
+      deleteEndpoint="/api/yoshlarSiyosati/delete"
       description="Youth policy programs and initiatives."
       fields={[
         { key: 'file',           label: 'File (PDF, DOC, DOCX, XLSX or ZIP)', type: 'file', required: true },
-        { key: 'title_uz',       label: 'Title (UZ)',               required: true },
+        { key: 'title_uz',       label: 'Title (UZ)',       required: true },
         { key: 'title_ru',       label: 'Title (RU)' },
         { key: 'title_oz',       label: 'Title (OZ)' },
-        { key: 'decree_uz',      label: 'Decree (UZ)',              required: true },
+        { key: 'decree_uz',      label: 'Decree (UZ)',      required: true },
         { key: 'decree_ru',      label: 'Decree (RU)' },
         { key: 'decree_oz',      label: 'Decree (OZ)' },
-        { key: 'description_uz', label: 'Description (UZ)',         type: 'textarea', required: true },
-        { key: 'description_ru', label: 'Description (RU)',         type: 'textarea' },
-        { key: 'description_oz', label: 'Description (OZ)',         type: 'textarea' },
+        { key: 'description_uz', label: 'Description (UZ)', type: 'textarea', required: true },
+        { key: 'description_ru', label: 'Description (RU)', type: 'textarea' },
+        { key: 'description_oz', label: 'Description (OZ)', type: 'textarea' },
       ]}
     />
   )
@@ -289,6 +312,8 @@ export function PlansReportsPage() {
     <GenericCrudPage
       title="Plans & Reports"
       endpoint="/api/plansReports"
+      createEndpoint="/api/plansReports/create"
+      deleteEndpoint="/api/plansReports/delete"
       description="Annual plans, reports, and performance documents."
       fields={[
         { key: 'title_uz',          label: 'Title (UZ)' },

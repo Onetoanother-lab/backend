@@ -87,7 +87,18 @@ const resolveValue = (record, key, lang = 'uz') => {
 // Determine the best display keys from a record (skip internal/meta fields)
 const SKIP_KEYS = ['_id', 'id', '__v', 'updatedAt', 'createdAt', 'password']
 
-const getId = (record) => record?._id || record?.id
+const getId = (record) => {
+  if (!record) return undefined
+  // Check common id field names in priority order
+  const idFields = ['_id', 'id', 'ID', 'Id', 'bannerId', 'newsId', 'leaderId', 'honoraryId', 'genderId', 'vacancyId', 'normativeId']
+  for (const f of idFields) {
+    if (record[f] !== undefined && record[f] !== null) return record[f]
+  }
+  // Last resort: scan all keys for anything ending in 'id' or 'Id'
+  const idKey = Object.keys(record).find(k => k.toLowerCase() === 'id' || k.toLowerCase().endsWith('id'))
+  if (idKey) return record[idKey]
+  return undefined
+}
 
 // ─── Create/Edit Form ─────────────────────────────────────────────────────────
 
@@ -222,7 +233,7 @@ function RecordForm({ fields, values, onChange, disabled }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function GenericCrudPage({ title, endpoint, createEndpoint, fields, description }) {
+export default function GenericCrudPage({ title, endpoint, createEndpoint, updateEndpoint, deleteEndpoint, fields, description }) {
   const { lang } = useLang()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(false)
@@ -335,7 +346,9 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
       setFormValues({})
       fetchRecords()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create')
+      const msg = err.response?.data?.message || err.response?.data?.error || JSON.stringify(err.response?.data) || err.message || 'Failed to create'
+      console.error('[POST error]', err.response?.status, err.response?.data)
+      toast.error(msg)
     } finally {
       setSubmitting(false)
     }
@@ -363,7 +376,10 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
     try {
       const payload = buildPayload()
       const isForm = payload instanceof FormData
-      await apiClient.put(`${endpoint}/${getId(editRecord)}`, payload, {
+      const recordId = getId(editRecord)
+      const putBase = updateEndpoint || endpoint
+      console.log(`[PUT] url: ${putBase}/${recordId}`)
+      await apiClient.put(`${putBase}/${recordId}`, payload, {
         headers: isForm ? { 'Content-Type': 'multipart/form-data' } : {},
       })
       toast.success('Updated successfully!')
@@ -371,7 +387,9 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
       setFormValues({})
       fetchRecords()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update')
+      const msg = err.response?.data?.message || err.response?.data?.error || JSON.stringify(err.response?.data) || err.message || 'Failed to update'
+      console.error('[PUT error]', err.response?.status, err.response?.data)
+      toast.error(msg)
     } finally {
       setSubmitting(false)
     }
@@ -379,25 +397,32 @@ export default function GenericCrudPage({ title, endpoint, createEndpoint, field
 
   const handleDelete = async () => {
     setDeleteLoading(true)
+    const recordId = getId(deleteRecord)
+    const deleteBase = deleteEndpoint || endpoint
+    const deleteUrl = `${deleteBase}/${recordId}`
+    console.log(`[DELETE] url: ${deleteUrl} | id: ${recordId} | record keys:`, Object.keys(deleteRecord || {}))
     try {
-      await apiClient.delete(`${endpoint}/${getId(deleteRecord)}`)
+      await apiClient.delete(deleteUrl)
       toast.success('Deleted successfully!')
       setRecords((prev) => prev.filter((r) => getId(r) !== getId(deleteRecord)))
       setDeleteRecord(null)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete')
+      const msg = err.response?.data?.message || err.response?.data?.error || JSON.stringify(err.response?.data) || err.message || 'Failed to delete'
+      console.error('[DELETE error]', err.response?.status, err.response?.data)
+      toast.error(msg)
     } finally {
       setDeleteLoading(false)
     }
   }
 
-  // Show only fields relevant to current language — hide the other two language variants
-  // e.g. if lang='ru', show title_ru, desc_ru etc, hide _uz and _oz columns
+  // Show only fields relevant to current language.
+  // Fields with no lang suffix (_uz/_oz/_ru) always show (e.g. plain 'title', 'deadline').
+  // Fields with a lang suffix only show if they match the active lang.
   const displayFields = fields.filter(f => {
     if (f.type === 'file' || f.type === 'multi-file') return false
     const suffix = f.key.match(/_(uz|oz|ru)$/)
-    if (!suffix) return true           // non-language field, always show
-    return suffix[1] === lang          // only show current language variant
+    if (!suffix) return true       // no lang suffix → always show
+    return suffix[1] === lang      // lang suffix → only show active lang
   })
 
   return (
