@@ -288,7 +288,6 @@ export function YoshlarPage() {
       title="Yoshlar Siyosati"
       endpoint="/api/yoshlarSiyosati"
       createEndpoint="/api/yoshlarSiyosati/create"
-      deleteEndpoint="/api/yoshlarSiyosati/delete"
       description="Youth policy programs and initiatives."
       fields={[
         { key: 'file',           label: 'File (PDF, DOC, DOCX, XLSX or ZIP)', type: 'file', required: true },
